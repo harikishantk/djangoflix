@@ -1,16 +1,32 @@
 from django.db import models
-
+from django.utils import timezone
 # Create your models here.
 class Video(models.Model):
+    class VideoStateOptions(models.TextChoices):
+        PUBLISH = 'PU','Published'
+        DRAFT = 'DR','Draft'
+        UNLISTED = 'UN','Unlisted'
+        PRIVATE = 'PR','Private'
+
     title = models.CharField(max_length=220)
     description = models.TextField(blank=True, null=True)
     slug = models.SlugField(blank=True, null=True)
     video_id = models.CharField(max_length=220)
     active = models.BooleanField(default=True)
+    state = models.CharField(max_length=4, choices=VideoStateOptions.choices, default=VideoStateOptions.DRAFT)
+    published_timestamp = models.DateTimeField(auto_now_add=True, auto_now=False, blank=True, null=True)
 
     @property
     def is_published(self):
         return self.active
+    
+    def save(self, *args, **kwargs):
+        if self.state == self.VideoStateOptions.PUBLISH and self.published_timestamp is None:
+            print("save as published")
+            self.published_timestamp = timezone.now()
+        elif self.state == self.VideoStateOptions.DRAFT:
+            self.published_timestamp = None
+        super().save(*args, **kwargs)
 
 class VideoAllProxy(Video):
     class Meta:
