@@ -14,18 +14,17 @@ class Video(models.Model):
     video_id = models.CharField(max_length=220)
     active = models.BooleanField(default=True)
     state = models.CharField(max_length=4, choices=VideoStateOptions.choices, default=VideoStateOptions.DRAFT)
-    published_timestamp = models.DateTimeField(auto_now_add=True, auto_now=False, blank=True, null=True)
+    publish_timestamp = models.DateTimeField(auto_now_add=True, auto_now=False, blank=True, null=True)
 
     @property
     def is_published(self):
         return self.active
     
     def save(self, *args, **kwargs):
-        if self.state == self.VideoStateOptions.PUBLISH and self.published_timestamp is None:
-            print("save as published")
-            self.published_timestamp = timezone.now()
+        if self.state == self.VideoStateOptions.PUBLISH and self.publish_timestamp is None:
+            self.publish_timestamp = timezone.now()
         elif self.state == self.VideoStateOptions.DRAFT:
-            self.published_timestamp = None
+            self.publish_timestamp = None
         super().save(*args, **kwargs)
 
 class VideoAllProxy(Video):
